@@ -1,6 +1,4 @@
-I believe that what you're seeing is the same problem behavior and the same solution as described here: https://stackoverflow.com/a/79006823
-
-In short, one needs to be _very_ careful about showing a window before the `MainWindow` handle is created. Otherwize the framework can interpret that transient window as being the application main with unpredictable consequences. This means that an ideal place to show something like `LoadingWindow` is in the `Loaded` event of `MainWindow` after making sure that you keep the main hidden until authorization has been obtained.
+The basic issue is that one needs to be _very_ careful about showing a window before the `MainWindow` handle is created. Otherwise the framework can interpret that transient window as being "the" application main with unpredictable consequences. This means that an ideal place to show something like `LoadingWindow` is in the `Loaded` event of `MainWindow` after making sure that you keep the main hidden until authorization has been obtained. (This is similar to my answer [here](https://stackoverflow.com/a/79006823).)
 
 
 ~~~
@@ -42,7 +40,9 @@ public partial class MainWindow : Window
                     case LoginState.Authorized:
                         break;
                     case LoginState.Canceled:
-                        break;
+                        MessageBox.Show("Not Authorized", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        Application.Current.Shutdown();
+                        return;
                     default:
                         throw new NotImplementedException();
                 }
@@ -141,6 +141,16 @@ public partial class LoadingWindow : Window
 
     public LoginState LoginState { get; set; }
     public string UserName => textBoxUserInput.Text;
+    protected override void OnClosed(EventArgs e)
+    {
+        if(!_awaiter.Wait(0))
+        {
+            _awaiter.Release();
+            LoginState = LoginState.Canceled;
+        }
+        _awaiter.Dispose();
+        base.OnClosed(e);
+    }
 }
 ~~~
 
