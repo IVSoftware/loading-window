@@ -62,5 +62,15 @@ namespace loading_window
 
         public LoginState LoginState { get; set; }
         public string UserName => textBoxUserInput.Text;
+        protected override void OnClosed(EventArgs e)
+        {
+            if(!_awaiter.Wait(0))
+            {
+                _awaiter.Release();
+                LoginState = LoginState.Canceled;
+            }
+            _awaiter.Dispose();
+            base.OnClosed(e);
+        }
     }
 }

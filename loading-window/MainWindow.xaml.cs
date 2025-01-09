@@ -43,7 +43,9 @@ namespace loading_window
                         case LoginState.Authorized:
                             break;
                         case LoginState.Canceled:
-                            break;
+                            MessageBox.Show("Not Authorized", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            Application.Current.Shutdown();
+                            return;
                         default:
                             throw new NotImplementedException();
                     }
